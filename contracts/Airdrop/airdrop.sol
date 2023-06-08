@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "@openzepplin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -10,10 +10,8 @@ contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
     /*================================ VARIABLES ================================*/
 
     IERC20 public token;
-    uint256 public rewardPerMonthSeedUser;
-    uint256 public rewardPerMonthPrivateUser;
 
-    address _signer;
+    address signer;
 
     mapping(bytes => bool) signatureInvalid;
     mapping(address => UserData) public userDatas;
@@ -39,21 +37,20 @@ contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
     ///@dev required by the OZ UUPS module
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
-    function initialize(address _token, uint256 _rewardPerMonthSeedUser, uint256 _rewardPerMonthPrivateUser) public initializer {
+    function initialize(address _token, address _signer) public initializer {
         token = IERC20(_token);
-        rewardPerMonthSeedUser = _rewardPerMonthSeedUser;
-        rewardPerMonthPrivateUser = _rewardPerMonthPrivateUser;
+        signer = _signer;
        
         ///@dev as there is no constructor, we need to initialise the OwnableUpgradeable explicitly
         __Ownable_init();
     }
 
-    function claimAirdrop(uint256 typeOfClaim, uint256 amount, bytes memory signature ) external {
+    function claimAirdrop(string memory internalId, uint256 typeOfClaim, uint256 amount, bytes memory signature ) external {
         UserData storage data = userDatas[msg.sender];
-        
+
         require(!BlackList[msg.sender], "Airdrop: User is in BlackList");
 
-        require(!signatureInvalid[signature] && verify(typeOfClaim, msg.sender, amount, signature), "Airdrop: Signature is invalid");
+        require(!signatureInvalid[signature] && verify(internalId, typeOfClaim, msg.sender, amount, signature), "Airdrop: Signature is invalid");
         signatureInvalid[signature] = true;
 
 
@@ -69,16 +66,18 @@ contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
 
     /**
      * @dev Return Message Hash
+     * @param _internalId internal ID
      * @param _typeOfClaim Seed or Private User (0 is Seed and 1 is Private)
      * @param _to: address of user claim Airdrop
      * @param _amount amount of Reward
     */
     function getMessageHash(
-        string memory _typeOfClaim,
+        string memory _internalId,
+        uint256 _typeOfClaim,
         address _to,
         uint256 _amount
     ) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_typeOfClaim, _to, _amount));
+        return keccak256(abi.encodePacked(_internalId, _typeOfClaim, _to, _amount));
     }
 
     /**
@@ -98,20 +97,22 @@ contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
 
     /**
      * @dev Return True/False
+     * @param _internalId internal ID
      * @param _typeOfClaim Seed or Private User (0 is Seed and 1 is Private)
      * @param _to: address of user claim Airdrop
      * @param _amount amount of Reward
      * @param signature: sign the message hash offchain
     */
     function verify(
-        string memory _typeOfClaim,
+        string memory _internalId,
+        uint256 _typeOfClaim,
         address _to,
         uint256 _amount,
         bytes memory signature
     ) internal view returns (bool) {
-        bytes32 messageHash = getMessageHash(_typeOfClaim, _to, _amount);
+        bytes32 messageHash = getMessageHash(_internalId, _typeOfClaim, _to, _amount);
         bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
-        return recoverSigner(ethSignedMessageHash, signature) == _signer;
+        return recoverSigner(ethSignedMessageHash, signature) == signer;
     }
 
     /**
@@ -156,21 +157,11 @@ contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
 
 
     function setSigner(address newSigner) external onlyOwner{
-        _signer = newSigner;
+        signer = newSigner;
     }
 
     function setBlackList(address user, bool val) external onlyOwner{
         BlackList[user] = val;
-    }
-
-
-
-    function setRewardPerMonthPrivateUser(uint256 _newRewardPerMonthPrivateUser) external onlyOwner {
-        rewardPerMonthPrivateUser = _newRewardPerMonthPrivateUser;
-    }
-
-    function setRewardPerMonthSeedUser(uint256 _newRewardPerMonthSeedUser) external onlyOwner {
-        rewardPerMonthSeedUser = _newRewardPerMonthSeedUser;
     }
 
 }

@@ -11,14 +11,13 @@ async function main() {
     
  if (!data || !data.TokenAddress) throw new Error("Invalid JSON data");
  let TokenAddress = data.TokenAddress
- let rewardPerSeedUser = ethers.utils.parseEther("2000")
- let rewardPerPrivateUser = ethers.utils.parseEther("1000")
+ let signer = ""
 
  const Airdrop = await ethers.getContractFactory("Airdrop");
 
  console.log("Deploying Proxy Airdrop...");
 
- const airdrop = await upgrades.deployProxy(Airdrop,[TokenAddress, rewardPerSeedUser, rewardPerPrivateUser], {
+ const airdrop = await upgrades.deployProxy(Airdrop,[TokenAddress, signer], {
   initializer: "initialize",
 });
  await airdrop.deployed();
