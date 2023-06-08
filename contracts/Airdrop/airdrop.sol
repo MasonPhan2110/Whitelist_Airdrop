@@ -3,13 +3,9 @@ pragma solidity ^0.8.0;
 
 import "@openzepplin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
-    using SafeMath for uint256;
-    using Counters for Counters.Counter;
 
     /*================================ VARIABLES ================================*/
 
@@ -20,7 +16,25 @@ contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
     address _signer;
 
     mapping(bytes => bool) signatureInvalid;
+    mapping(address => UserData) public userDatas;
+    mapping(address => bool) public BlackList;
+
+
+
+    /*================================ STRUCTS ================================*/
     
+    struct UserData {
+        uint256 rewardClaimed;
+        uint256 lastClaimed;
+    }
+
+    /*================================ EVENTS ================================*/
+
+    event ClaimReward (
+        address indexed user,
+        uint256 amount
+    );
+
     /*=============================== FUNCTIONS ===============================*/
     ///@dev required by the OZ UUPS module
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -35,8 +49,21 @@ contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
     }
 
     function claimAirdrop(uint256 typeOfClaim, uint256 amount, bytes memory signature ) external {
+        UserData storage data = userDatas[msg.sender];
+        
+        require(!BlackList[msg.sender], "Airdrop: User is in BlackList");
+
         require(!signatureInvalid[signature] && verify(typeOfClaim, msg.sender, amount, signature), "Airdrop: Signature is invalid");
         signatureInvalid[signature] = true;
+
+
+        data.rewardClaimed += amount;
+        data.lastClaimed = block.timestamp;
+
+        token.transfer(msg.sender, amount);
+
+
+        emit ClaimReward(msg.sender, amount);
     }
 
 
@@ -130,6 +157,10 @@ contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
 
     function setSigner(address newSigner) external onlyOwner{
         _signer = newSigner;
+    }
+
+    function setBlackList(address user, bool val) external onlyOwner{
+        BlackList[user] = val;
     }
 
 
