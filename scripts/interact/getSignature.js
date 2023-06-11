@@ -1,11 +1,10 @@
 const Web3 = require('web3');
 
 async function main(){
-    contractAddress = ""
-    let _internalId = ""
+    let _internalId = "dfd"
     let _typeOfClaim = 0
-    let _to = ""
-    let _amount =  ethers.utils.parseEther("1000")
+    let _to = "0x5729214E4f0687DCcD990c8fD69bc6A4d90c2e9A"
+    let _amount =  "1000"
     const hashMessage = await Web3.utils.soliditySha3(
        _internalId,
        _typeOfClaim,
@@ -13,9 +12,8 @@ async function main(){
        _amount
       );
       console.log(hashMessage);
-      const privateKey = "5a1d47ed36bae797c576a4fa350721130344781e676bfca5d82f0aa6917e354b"
-      const web3 = new Web3("https://data-seed-prebsc-1-s2.binance.org:8545");
-        web3.eth.accounts.privateKeyToAccount(privateKey);
+      const privateKey = "0x027b5fb43361d28f93568c7a750cf5ff780448ae35d18754105a62fddf2b4a04"
+      const web3 = new Web3("https://polygon-mumbai.infura.io/v3/df725fecdde44a6981a09a2874b1c10c");
       const signature = web3.eth.accounts.sign(hashMessage, privateKey);
       console.log(signature);
 }

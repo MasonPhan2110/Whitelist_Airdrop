@@ -11,7 +11,7 @@ async function main() {
     
  if (!data || !data.TokenAddress) throw new Error("Invalid JSON data");
  let TokenAddress = data.TokenAddress
- let signer = ""
+ let signer = "0xa1D7E1d8353522f9E6c2C0f75f67507e50Ba4739"
 
  const Airdrop = await ethers.getContractFactory("Airdrop");
 
