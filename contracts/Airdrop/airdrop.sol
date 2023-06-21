@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../Interface/IERC20.sol";
 
 contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
 
@@ -57,7 +57,10 @@ contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
         data.rewardClaimed += amount;
         data.lastClaimed = block.timestamp;
 
-        token.transfer(msg.sender, amount);
+        // token.transfer(msg.sender, amount);
+
+        // mint token to User
+        token.mint(msg.sender, amount);
 
 
         emit ClaimReward(msg.sender, amount);
@@ -162,6 +165,10 @@ contract Airdrop is OwnableUpgradeable, UUPSUpgradeable{
 
     function setBlackList(address user, bool val) external onlyOwner{
         BlackList[user] = val;
+    }
+
+    function setToken(address newToken) external onlyOwner{
+        token = IERC20(newToken);
     }
 
 }

@@ -5,7 +5,7 @@ require("dotenv").config();
 
 
 async function main() {
-    const contract_sol_url = "contracts/Airdrop.sol:Airdrop";
+    const contract_sol_url = "contracts/Airdrop/airdrop.sol:Airdrop";
 
     const file = fs.readFileSync(
       "./scripts/data/deployAirdrop.json",

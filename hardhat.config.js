@@ -2,6 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require('dotenv').config();
 require("@nomiclabs/hardhat-etherscan");
 require("@openzeppelin/hardhat-upgrades");
+require("hardhat-gas-reporter");
 
 module.exports = {
   networks: {
@@ -56,5 +57,9 @@ module.exports = {
   },
   paths:{
     tests: "./test",
+  },
+  gasReporter: {
+    currency: 'CHF',
+    gasPrice: 21
   }
 };
